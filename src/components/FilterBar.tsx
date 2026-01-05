@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Search, SlidersHorizontal, X, ChevronRight, RotateCcw } from "lucide-react";
 
 interface FilterBarProps {
@@ -44,7 +44,7 @@ export default function FilterBar({
     (minPrice || maxPrice ? 1 : 0) +
     (searchQuery ? 1 : 0);
 
-  const FilterContent = () => (
+  const filterContent = useMemo(() => (
     <div className="space-y-10">
       {/* Search */}
       <div>
@@ -75,8 +75,8 @@ export default function FilterBar({
               key={cat.id}
               onClick={() => setSelectedCategory(selectedCategory === cat.id ? "" : cat.id)}
               className={`px-4 py-2 rounded-lg text-sm transition-all duration-300 border ${selectedCategory === cat.id
-                  ? "bg-gold text-soft border-gold shadow-md"
-                  : "bg-soft/50 text-accent border-gold/10 hover:border-gold/30"
+                ? "bg-gold text-soft border-gold shadow-md"
+                : "bg-soft/50 text-accent border-gold/10 hover:border-gold/30"
                 }`}
             >
               {cat.name}
@@ -99,8 +99,8 @@ export default function FilterBar({
               key={mat.id}
               onClick={() => setSelectedMaterial(selectedMaterial === mat.name ? "" : mat.name)}
               className={`px-4 py-2 rounded-lg text-sm transition-all duration-300 border ${selectedMaterial === mat.name
-                  ? "bg-gold text-soft border-gold shadow-md"
-                  : "bg-soft/50 text-accent border-gold/10 hover:border-gold/30"
+                ? "bg-gold text-soft border-gold shadow-md"
+                : "bg-soft/50 text-accent border-gold/10 hover:border-gold/30"
                 }`}
             >
               {mat.name}
@@ -152,7 +152,22 @@ export default function FilterBar({
         </button>
       )}
     </div>
-  );
+  ), [
+    searchQuery,
+    setSearchQuery,
+    categories,
+    selectedCategory,
+    setSelectedCategory,
+    materials,
+    selectedMaterial,
+    setSelectedMaterial,
+    minPrice,
+    setMinPrice,
+    maxPrice,
+    setMaxPrice,
+    activeFiltersCount,
+    clearFilters,
+  ]);
 
   return (
     <div className="w-full mb-10">
@@ -213,7 +228,7 @@ export default function FilterBar({
 
           {/* Drawer Body */}
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-            <FilterContent />
+            {filterContent}
           </div>
 
           {/* Drawer Footer */}
