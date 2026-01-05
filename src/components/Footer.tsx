@@ -96,12 +96,12 @@ export default function Footer() {
               <p className="text-accent/60">Crafted with devotion in Sri Lanka</p>
               <span className="hidden md:block text-gold/30">|</span>
               <p className="text-accent/60 text-xs">
-                Designed and Developed by <span className="text-gold">TribeTek</span>
+                Designed and Developed by <a className="text-gold" href="https://tribetek.info" target="_blank">TribeTek</a>
               </p>
             </div>
           </div>
         </div>
       </div>
-    </footer>
+    </footer >
   );
 }

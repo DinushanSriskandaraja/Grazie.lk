@@ -222,8 +222,8 @@ export default function FilterBar({
                     key={product.id}
                     onClick={() => handleSuggestionClick(product)}
                     className={`w-full text-left px-4 py-3 transition-all duration-200 border-b border-gold/10 last:border-b-0 ${index === selectedIndex
-                        ? 'bg-gold/10'
-                        : 'hover:bg-gold/5'
+                      ? 'bg-gold/10'
+                      : 'hover:bg-gold/5'
                       }`}
                   >
                     <div className="flex items-center gap-4">
@@ -246,9 +246,6 @@ export default function FilterBar({
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-medium text-dark truncate">
                           {highlightMatch(product.name, searchQuery)}
-                        </div>
-                        <div className="text-xs text-accent mt-0.5">
-                          LKR {product.price.toLocaleString()}
                         </div>
                       </div>
 
