@@ -2,6 +2,8 @@
 
 import { useState, useMemo, useRef, useEffect } from "react";
 import { Search, SlidersHorizontal, X, ChevronRight, RotateCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface Product {
   id: string;
@@ -10,6 +12,7 @@ interface Product {
   price: number;
   category: string;
   material?: string;
+  images?: Array<{ image_url: string[] }>;
 }
 
 interface FilterBarProps {
@@ -52,6 +55,7 @@ export default function FilterBar({
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
 
   const activeFiltersCount =
     (selectedCategory ? 1 : 0) +
@@ -69,8 +73,7 @@ export default function FilterBar({
     const matchedProducts = products
       .filter(product => product.name.toLowerCase().includes(query))
       .map(product => {
-        const name = product.name;
-        const nameLower = name.toLowerCase();
+        const nameLower = product.name.toLowerCase();
         const words = nameLower.split(/\s+/);
 
         // Determine match priority
@@ -87,17 +90,17 @@ export default function FilterBar({
           }
         });
 
-        return { name, priority };
+        return { product, priority };
       })
       // Sort by priority (lower number first), then alphabetically
       .sort((a, b) => {
         if (a.priority !== b.priority) {
           return a.priority - b.priority;
         }
-        return a.name.localeCompare(b.name);
+        return a.product.name.localeCompare(b.product.name);
       })
       .slice(0, 8)
-      .map(item => item.name);
+      .map(item => item.product);
 
     return matchedProducts;
   }, [searchQuery, products]);
@@ -137,9 +140,11 @@ export default function FilterBar({
       case 'Enter':
         e.preventDefault();
         if (selectedIndex >= 0) {
-          setSearchQuery(suggestions[selectedIndex]);
+          const selectedProduct = suggestions[selectedIndex];
+          router.push(`/products/${selectedProduct.id}`);
           setShowSuggestions(false);
           setSelectedIndex(-1);
+          setIsDrawerOpen(false);
         }
         break;
       case 'Escape':
@@ -149,11 +154,12 @@ export default function FilterBar({
     }
   };
 
-  // Handle suggestion click
-  const handleSuggestionClick = (suggestion: string) => {
-    setSearchQuery(suggestion);
+  // Handle suggestion click - navigate to product page
+  const handleSuggestionClick = (product: Product) => {
+    router.push(`/products/${product.id}`);
     setShowSuggestions(false);
     setSelectedIndex(-1);
+    setIsDrawerOpen(false);
   };
 
   // Handle input change
@@ -206,25 +212,52 @@ export default function FilterBar({
           {showSuggestions && suggestions.length > 0 && (
             <div
               ref={dropdownRef}
-              className="absolute top-full left-0 right-0 mt-2 bg-soft border border-gold/20 rounded-xl shadow-2xl z-50 overflow-hidden max-h-80 overflow-y-auto custom-scrollbar"
+              className="absolute top-full left-0 right-0 mt-2 bg-soft border border-gold/20 rounded-xl shadow-2xl z-50 overflow-hidden max-h-96 overflow-y-auto custom-scrollbar"
             >
-              {suggestions.map((suggestion, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleSuggestionClick(suggestion)}
-                  className={`w-full text-left px-4 py-3 transition-all duration-200 border-b border-gold/10 last:border-b-0 ${index === selectedIndex
-                    ? 'bg-gold/10 text-dark'
-                    : 'hover:bg-gold/5 text-dark'
-                    }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Search className="w-3.5 h-3.5 text-accent flex-shrink-0" />
-                    <span className="text-sm">
-                      {highlightMatch(suggestion, searchQuery)}
-                    </span>
-                  </div>
-                </button>
-              ))}
+              {suggestions.map((product, index) => {
+                const imageUrl = product.images?.[0]?.image_url?.[0] || '/placeholder-product.jpg';
+
+                return (
+                  <button
+                    key={product.id}
+                    onClick={() => handleSuggestionClick(product)}
+                    className={`w-full text-left px-4 py-3 transition-all duration-200 border-b border-gold/10 last:border-b-0 ${index === selectedIndex
+                        ? 'bg-gold/10'
+                        : 'hover:bg-gold/5'
+                      }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Product Image */}
+                      <div className="relative w-12 h-12 flex-shrink-0 rounded-lg overflow-hidden bg-soft border border-gold/10">
+                        <Image
+                          src={imageUrl}
+                          alt={product.name}
+                          fill
+                          className="object-cover"
+                          sizes="48px"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/placeholder-product.jpg';
+                          }}
+                        />
+                      </div>
+
+                      {/* Product Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium text-dark truncate">
+                          {highlightMatch(product.name, searchQuery)}
+                        </div>
+                        <div className="text-xs text-accent mt-0.5">
+                          LKR {product.price.toLocaleString()}
+                        </div>
+                      </div>
+
+                      {/* Arrow Icon */}
+                      <ChevronRight className="w-4 h-4 text-accent flex-shrink-0 opacity-50" />
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
 
