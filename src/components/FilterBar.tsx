@@ -1,11 +1,21 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Search, SlidersHorizontal, X, ChevronRight, RotateCcw } from "lucide-react";
+
+interface Product {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+  material?: string;
+}
 
 interface FilterBarProps {
   categories: { id: string; name: string }[];
   materials: { id: string; name: string }[];
+  products: Product[];
   selectedCategory: string;
   setSelectedCategory: (id: string) => void;
   selectedMaterial: string;
@@ -23,6 +33,7 @@ interface FilterBarProps {
 export default function FilterBar({
   categories,
   materials,
+  products,
   selectedCategory,
   setSelectedCategory,
   selectedMaterial,
@@ -37,6 +48,10 @@ export default function FilterBar({
   resultsCount,
 }: FilterBarProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const activeFiltersCount =
     (selectedCategory ? 1 : 0) +
@@ -44,20 +59,186 @@ export default function FilterBar({
     (minPrice || maxPrice ? 1 : 0) +
     (searchQuery ? 1 : 0);
 
+  // Filter products for suggestions
+  const suggestions = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+
+    const query = searchQuery.toLowerCase();
+
+    // Filter and map products with their match priority
+    const matchedProducts = products
+      .filter(product => product.name.toLowerCase().includes(query))
+      .map(product => {
+        const name = product.name;
+        const nameLower = name.toLowerCase();
+        const words = nameLower.split(/\s+/);
+
+        // Determine match priority
+        let priority = 999; // Default priority for matches anywhere
+
+        // Check if query matches the start of each word
+        words.forEach((word, index) => {
+          if (word.startsWith(query)) {
+            // Lower number = higher priority
+            // 1st word = 0, 2nd word = 1, 3rd word = 2, etc.
+            if (index < priority) {
+              priority = index;
+            }
+          }
+        });
+
+        return { name, priority };
+      })
+      // Sort by priority (lower number first), then alphabetically
+      .sort((a, b) => {
+        if (a.priority !== b.priority) {
+          return a.priority - b.priority;
+        }
+        return a.name.localeCompare(b.name);
+      })
+      .slice(0, 8)
+      .map(item => item.name);
+
+    return matchedProducts;
+  }, [searchQuery, products]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showSuggestions || suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev =>
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0) {
+          setSearchQuery(suggestions[selectedIndex]);
+          setShowSuggestions(false);
+          setSelectedIndex(-1);
+        }
+        break;
+      case 'Escape':
+        setShowSuggestions(false);
+        setSelectedIndex(-1);
+        break;
+    }
+  };
+
+  // Handle suggestion click
+  const handleSuggestionClick = (suggestion: string) => {
+    setSearchQuery(suggestion);
+    setShowSuggestions(false);
+    setSelectedIndex(-1);
+  };
+
+  // Handle input change
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setShowSuggestions(true);
+    setSelectedIndex(-1);
+  };
+
+  // Highlight matching text
+  const highlightMatch = (text: string, query: string) => {
+    if (!query.trim()) return text;
+
+    const index = text.toLowerCase().indexOf(query.toLowerCase());
+    if (index === -1) return text;
+
+    const before = text.slice(0, index);
+    const match = text.slice(index, index + query.length);
+    const after = text.slice(index + query.length);
+
+    return (
+      <>
+        {before}
+        <span className="font-bold text-gold">{match}</span>
+        {after}
+      </>
+    );
+  };
+
   const filterContent = useMemo(() => (
     <div className="space-y-10">
       {/* Search */}
       <div>
         <h3 className="text-xs font-bold text-dark uppercase tracking-[0.2em] mb-4 font-body">Search Products</h3>
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-accent" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-4 h-4 text-accent z-10" />
           <input
+            ref={inputRef}
             type="text"
             placeholder="Search by name..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onFocus={() => searchQuery && setShowSuggestions(true)}
             className="w-full pl-12 pr-4 py-4 bg-soft border border-gold/20 rounded-xl focus:border-gold focus:outline-none transition-all placeholder:text-accent/50 text-dark"
+            autoComplete="off"
           />
+
+          {/* Autocomplete Dropdown */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div
+              ref={dropdownRef}
+              className="absolute top-full left-0 right-0 mt-2 bg-soft border border-gold/20 rounded-xl shadow-2xl z-50 overflow-hidden max-h-80 overflow-y-auto custom-scrollbar"
+            >
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleSuggestionClick(suggestion)}
+                  className={`w-full text-left px-4 py-3 transition-all duration-200 border-b border-gold/10 last:border-b-0 ${index === selectedIndex
+                    ? 'bg-gold/10 text-dark'
+                    : 'hover:bg-gold/5 text-dark'
+                    }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <Search className="w-3.5 h-3.5 text-accent flex-shrink-0" />
+                    <span className="text-sm">
+                      {highlightMatch(suggestion, searchQuery)}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* No results message */}
+          {showSuggestions && searchQuery && suggestions.length === 0 && (
+            <div
+              ref={dropdownRef}
+              className="absolute top-full left-0 right-0 mt-2 bg-soft border border-gold/20 rounded-xl shadow-2xl z-50 overflow-hidden"
+            >
+              <div className="px-4 py-3 text-sm text-accent italic">
+                No products found matching "{searchQuery}"
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -154,7 +335,13 @@ export default function FilterBar({
     </div>
   ), [
     searchQuery,
-    setSearchQuery,
+    handleSearchChange,
+    handleKeyDown,
+    showSuggestions,
+    suggestions,
+    selectedIndex,
+    handleSuggestionClick,
+    highlightMatch,
     categories,
     selectedCategory,
     setSelectedCategory,

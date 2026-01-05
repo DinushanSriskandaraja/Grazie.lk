@@ -115,6 +115,7 @@ export default function ProductsPage() {
         <FilterBar
           categories={categories}
           materials={materials}
+          products={products}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
           selectedMaterial={selectedMaterial}
