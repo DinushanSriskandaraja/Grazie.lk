@@ -174,7 +174,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                 </div>
               </div>
 
-              <p className="text-dark/80 text-lg md:text-xl leading-relaxed mb-12">
+              <p className="text-dark/80 text-lg md:text-xl leading-relaxed mb-12 whitespace-pre-line">
                 {product.description}
               </p>
 
