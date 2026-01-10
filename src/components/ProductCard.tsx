@@ -23,13 +23,21 @@ interface Props {
   onDelete?: (id: string | number) => void | Promise<void>;
 }
 
-export default function ProductCard({ product, isAdmin = false, onDelete }: Props) {
+export default function ProductCard({
+  product,
+  isAdmin = false,
+  onDelete,
+}: Props) {
   const [showOrderModal, setShowOrderModal] = useState(false);
   const whatsappLink = getWhatsAppLink(`I want to order ${product.name}`);
 
   // Determine the best image URL to show
   let mainImageUrl = "/placeholder.png";
-  if (product.images && product.images.length > 0 && product.images[0].image_url?.[0]) {
+  if (
+    product.images &&
+    product.images.length > 0 &&
+    product.images[0].image_url?.[0]
+  ) {
     mainImageUrl = product.images[0].image_url[0];
   } else if (Array.isArray(product.image) && product.image.length > 0) {
     mainImageUrl = product.image[0];
@@ -40,7 +48,14 @@ export default function ProductCard({ product, isAdmin = false, onDelete }: Prop
   return (
     <div className="group relative bg-soft overflow-hidden rounded-sm shadow-md hover:shadow-xl transition-all duration-500 ease-in-out border border-transparent hover:border-gold w-full flex flex-col h-full">
       {/* Image with responsive aspect ratio */}
-      <Link href={isAdmin ? `/admin/products/${product.id}/edit` : `/products/${product.id}`} className="block w-full overflow-hidden relative" style={{ paddingTop: "70%" }}>
+      <Link
+        href={
+          isAdmin
+            ? `/admin/products/${product.id}/edit`
+            : `/products/${product.id}`
+        }
+        className="block w-full overflow-hidden relative"
+        style={{ paddingTop: "70%" }}>
         <img
           src={mainImageUrl}
           alt={product.name}
@@ -51,7 +66,12 @@ export default function ProductCard({ product, isAdmin = false, onDelete }: Prop
       {/* Content */}
       <div className="p-4 sm:p-5 md:p-6 flex-1 flex flex-col">
         {/* Product Name */}
-        <Link href={isAdmin ? `/admin/products/${product.id}/edit` : `/products/${product.id}`}>
+        <Link
+          href={
+            isAdmin
+              ? `/admin/products/${product.id}/edit`
+              : `/products/${product.id}`
+          }>
           <h3 className="text-base sm:text-lg md:text-xl font-semibold text-dark font-heading mb-1 tracking-wide line-clamp-1 hover:text-gold transition-colors">
             {product.name}
           </h3>
@@ -59,7 +79,11 @@ export default function ProductCard({ product, isAdmin = false, onDelete }: Prop
 
         {/* Category */}
         <p className="text-accent text-xs sm:text-sm mb-2 uppercase tracking-wide font-medium">
-          {product.Category?.Category || product.category || "General"}
+          {product.Category?.Category ||
+            (typeof product.category === "object" && product.category !== null
+              ? (product.category as any).category
+              : product.category) ||
+            "General"}
         </p>
 
         {/* Subtle gold divider */}
@@ -70,21 +94,18 @@ export default function ProductCard({ product, isAdmin = false, onDelete }: Prop
           Rs. {product.price.toLocaleString()}
         </p>
 
-
         {/* Buttons */}
         <div className="flex flex-wrap items-center gap-2">
           {isAdmin ? (
             <>
               <Link
                 href={`/admin/products/${product.id}/edit`}
-                className="flex-1 text-center py-2 px-2 bg-amber-50 text-amber-700 text-sm font-medium rounded-sm hover:bg-amber-100 transition"
-              >
+                className="flex-1 text-center py-2 px-2 bg-amber-50 text-amber-700 text-sm font-medium rounded-sm hover:bg-amber-100 transition">
                 Edit
               </Link>
               <button
                 onClick={() => onDelete?.(product.id)}
-                className="p-2 bg-red-50 text-red-600 rounded-sm hover:bg-red-100 transition"
-              >
+                className="p-2 bg-red-50 text-red-600 rounded-sm hover:bg-red-100 transition">
                 <Trash2 size={18} />
               </button>
             </>
@@ -92,14 +113,12 @@ export default function ProductCard({ product, isAdmin = false, onDelete }: Prop
             <>
               <Link
                 href={`/products/${product.id}`}
-                className="flex-1 text-center py-1 px-4 border border-gold text-dark font-medium rounded-sm hover:bg-gold hover:text-soft transition-colors duration-300"
-              >
+                className="flex-1 text-center py-1 px-4 border border-gold text-dark font-medium rounded-sm hover:bg-gold hover:text-soft transition-colors duration-300">
                 View
               </Link>
               <button
                 onClick={() => setShowOrderModal(true)}
-                className="flex-1 text-center py-2 px-4 bg-gold text-soft font-semibold rounded-sm hover:bg-dark transition shadow-md"
-              >
+                className="flex-1 text-center py-2 px-4 bg-gold text-soft font-semibold rounded-sm hover:bg-dark transition shadow-md">
                 Order
               </button>
             </>
@@ -113,18 +132,15 @@ export default function ProductCard({ product, isAdmin = false, onDelete }: Prop
       {showOrderModal && (
         <div
           className="fixed inset-0 bg-dark/70 backdrop-blur-md z-[100] flex items-center justify-center p-4"
-          onClick={() => setShowOrderModal(false)}
-        >
+          onClick={() => setShowOrderModal(false)}>
           <div
             className="bg-soft shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
+            onClick={(e) => e.stopPropagation()}>
             {/* Close Button */}
             <button
               onClick={() => setShowOrderModal(false)}
               className="absolute top-6 right-6 text-dark/60 hover:text-dark transition z-10"
-              aria-label="Close order form"
-            >
+              aria-label="Close order form">
               <X size={28} />
             </button>
 
@@ -134,13 +150,20 @@ export default function ProductCard({ product, isAdmin = false, onDelete }: Prop
                 Order with Devotion
               </h2>
               <OrderForm
-                items={[{
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  quantity: 1,
-                  category: product.Category?.Category || product.category
-                }]}
+                items={[
+                  {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    category:
+                      product.Category?.Category ||
+                      (typeof product.category === "object" &&
+                      product.category !== null
+                        ? (product.category as any).category
+                        : product.category),
+                  },
+                ]}
                 onOrderSuccess={() => setShowOrderModal(false)}
               />
             </div>

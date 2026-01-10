@@ -1,7 +1,7 @@
 // components/ProductDetail.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -34,21 +34,39 @@ export default function ProductDetail({ product }: { product: Product }) {
   const [cartCount, setCartCount] = useState(0);
   const [stock, setStock] = useState(product.stock);
   const [showSizeChart, setShowSizeChart] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(product.images?.[0]?.image_url?.[0] || "/placeholder.png");
+  const [selectedImage, setSelectedImage] = useState(
+    product.images?.[0]?.image_url?.[0] || "/placeholder.png"
+  );
   const router = useRouter();
+
+  // Auto-scroll through images
+  useEffect(() => {
+    const images = product.images?.[0]?.image_url;
+    if (!images || images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setSelectedImage((currentImage) => {
+        const currentIndex = images.indexOf(currentImage);
+        const nextIndex = (currentIndex + 1) % images.length;
+        return images[nextIndex];
+      });
+    }, 3000); // Change image every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [product.images]);
 
   const handleAddToCart = () => {
     if (stock <= 0) return;
 
     const existingCart = JSON.parse(localStorage.getItem("grazieCart") || "[]");
-    const existingItem = existingCart.find((item: any) => item.id === product.id);
+    const existingItem = existingCart.find(
+      (item: any) => item.id === product.id
+    );
 
     let updatedCart;
     if (existingItem) {
       updatedCart = existingCart.map((item: any) =>
-        item.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
+        item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
       );
     } else {
       updatedCart = [
@@ -57,7 +75,11 @@ export default function ProductDetail({ product }: { product: Product }) {
           id: product.id,
           name: product.name,
           price: product.price,
-          category: product.Category?.Category || product.category,
+          category:
+            product.Category?.Category ||
+            (typeof product.category === "object" && product.category !== null
+              ? (product.category as any).category
+              : product.category),
           image: product.images?.[0]?.image_url?.[0] || "",
           quantity: 1,
         },
@@ -79,20 +101,19 @@ export default function ProductDetail({ product }: { product: Product }) {
   const lowStock = stock <= 5 && stock > 0;
 
   return (
-    <div className="min-h-screen m-12 bg-soft py-12 md:py-20">
+    <div className=" m-6 md:m-12 bg-soft py-6 md:py-12">
       <div className="container mx-auto px-6 md:px-12 lg:px-20">
         {/* Breadcrumb */}
         <Link
           href="/products"
-          className="inline-flex items-center gap-2 text-dark/70 hover:text-dark transition mb-10 text-sm font-medium"
-        >
+          className="inline-flex items-center gap-2 text-dark/70 hover:text-dark transition mb-6 text-sm font-medium">
           ← Back to Collection
         </Link>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           {/* Product Gallery */}
           <div className="space-y-6">
-            <div className="relative aspect-[3/4] overflow-hidden group bg-soft border border-gold/10">
+            <div className="relative aspect-[10/7] overflow-hidden group bg-soft border border-gold/10">
               <Image
                 src={selectedImage}
                 alt={product.name}
@@ -105,38 +126,46 @@ export default function ProductDetail({ product }: { product: Product }) {
             </div>
 
             {/* Thumbnails */}
-            {product.images?.[0]?.image_url && product.images[0].image_url.length > 1 && (
-              <div className="grid grid-cols-5 gap-3">
-                {product.images[0].image_url.map((url, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedImage(url)}
-                    className={`relative aspect-square overflow-hidden border-2 transition-all duration-300 ${selectedImage === url ? "border-gold shadow-md" : "border-transparent opacity-60 hover:opacity-100"
-                      }`}
-                  >
-                    <Image
-                      src={url}
-                      alt={`${product.name} template ${idx + 1}`}
-                      fill
-                      className="object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+            {product.images?.[0]?.image_url &&
+              product.images[0].image_url.length > 1 && (
+                <div className="grid grid-cols-5 gap-3">
+                  {product.images[0].image_url.map((url, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedImage(url)}
+                      className={`relative aspect-square overflow-hidden border-2 transition-all duration-300 ${
+                        selectedImage === url
+                          ? "border-gold shadow-md"
+                          : "border-transparent opacity-60 hover:opacity-100"
+                      }`}>
+                      <Image
+                        src={url}
+                        alt={`${product.name} template ${idx + 1}`}
+                        fill
+                        className="object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
           </div>
 
           {/* Product Info */}
-          <div className="space-y-10">
+          <div className="space-y-6">
             <div>
-              <h1 className="text-4xl md:text-6xl font-heading font-semibold text-dark mb-6 leading-tight">
+              <h1 className="text-3xl md:text-5xl font-heading font-semibold text-dark mb-4 leading-tight">
                 {product.name}
               </h1>
 
-              <div className="flex flex-wrap gap-4 mb-8">
-                {(product.Category?.Category || (product.category && product.category !== "General")) && (
+              <div className="flex flex-wrap gap-3 mb-6">
+                {(product.Category?.Category ||
+                  (product.category && product.category !== "General")) && (
                   <span className="px-6 py-3 bg-gold/20 text-gold  text-sm font-medium border border-gold/40">
-                    {product.Category?.Category || product.category}
+                    {product.Category?.Category ||
+                      (typeof product.category === "object" &&
+                      product.category !== null
+                        ? (product.category as any).category
+                        : product.category)}
                   </span>
                 )}
                 {product.materials?.name && (
@@ -146,20 +175,25 @@ export default function ProductDetail({ product }: { product: Product }) {
                 )}
               </div>
 
-              <p className="text-5xl md:text-6xl font-medium text-dark mb-8">
+              <p className="text-4xl md:text-5xl font-medium text-dark mb-6">
                 Rs. {product.price.toLocaleString()}
               </p>
 
               {/* Availability & Shipping */}
-              <div className="space-y-4 mb-10">
+              <div className="space-y-3 mb-6">
                 <div className="flex items-center gap-3">
                   <Package className="w-5 h-5 text-gold" />
-                  <span className={`font-medium ${inStock ? "text-dark" : "text-red-600"}`}>
+                  <span
+                    className={`font-medium ${
+                      inStock ? "text-dark" : "text-red-600"
+                    }`}>
                     {inStock ? (
                       lowStock ? (
-                        <span className="text-red-600 font-bold">Only {stock} left!</span>
+                        <span className="text-red-600 font-bold">
+                          Only {stock} left!
+                        </span>
                       ) : (
-                        `In Stock (${stock} available)`
+                        `In Stock`
                       )
                     ) : (
                       "Out of Stock"
@@ -169,7 +203,8 @@ export default function ProductDetail({ product }: { product: Product }) {
                 <div className="flex items-center gap-3">
                   <Truck className="w-5 h-5 text-gold" />
                   <span className="text-dark/80">
-                    Estimated Delivery: {product.delivey_days}-7 days island-wide
+                    Estimated Delivery: {product.delivey_days}-7 days
+                    island-wide
                   </span>
                 </div>
               </div>
@@ -183,8 +218,7 @@ export default function ProductDetail({ product }: { product: Product }) {
                 <div className="mb-8">
                   <button
                     onClick={() => setShowSizeChart(true)}
-                    className="text-accent hover:text-dark underline transition font-medium"
-                  >
+                    className="text-accent hover:text-dark underline transition font-medium">
                     View Size Chart →
                   </button>
                 </div>
@@ -195,19 +229,18 @@ export default function ProductDetail({ product }: { product: Product }) {
                 <button
                   onClick={handleAddToCart}
                   disabled={!inStock}
-                  className={`flex-1 flex items-center justify-center gap-3 py-5 px-8 rounded-xl font-semibold text-lg transition-all duration-300 shadow-xl ${inStock
-                    ? "bg-dark text-soft hover:bg-gold hover:text-soft"
-                    : "bg-accent/20 text-accent/50 cursor-not-allowed"
-                    }`}
-                >
+                  className={`flex-1 flex items-center justify-center gap-3 py-5 px-8 rounded-xl font-semibold text-lg transition-all duration-300 shadow-xl ${
+                    inStock
+                      ? "bg-dark text-soft hover:bg-gold hover:text-soft"
+                      : "bg-accent/20 text-accent/50 cursor-not-allowed"
+                  }`}>
                   <ShoppingCart size={20} />
                   Add to Cart
                 </button>
 
                 <button
                   onClick={() => setShowOrderModal(true)}
-                  className="flex-1 flex items-center justify-center gap-3 bg-gold text-soft py-5 px-8 rounded-xl font-bold text-lg shadow-2xl hover:bg-dark hover:shadow-3xl transition-all duration-500"
-                >
+                  className="flex-1 flex items-center justify-center gap-3 bg-gold text-soft py-5 px-8 rounded-xl font-bold text-lg shadow-2xl hover:bg-dark hover:shadow-3xl transition-all duration-500">
                   🪔 Order Now
                 </button>
               </div>
@@ -216,8 +249,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               <div className="flex justify-end">
                 <button
                   onClick={handleCopyLink}
-                  className="flex items-center gap-2 text-dark/70 hover:text-dark transition font-medium"
-                >
+                  className="flex items-center gap-2 text-dark/70 hover:text-dark transition font-medium">
                   <Link2 size={20} />
                   Copy Link
                 </button>
@@ -245,18 +277,15 @@ export default function ProductDetail({ product }: { product: Product }) {
       {showOrderModal && (
         <div
           className="fixed inset-0 bg-dark/70 backdrop-blur-md z-50 flex items-center justify-center p-4"
-          onClick={() => setShowOrderModal(false)}
-        >
+          onClick={() => setShowOrderModal(false)}>
           <div
             className="bg-soft shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
+            onClick={(e) => e.stopPropagation()}>
             {/* Close Button */}
             <button
               onClick={() => setShowOrderModal(false)}
               className="absolute top-6 right-6 text-dark/60 hover:text-dark transition z-10"
-              aria-label="Close order form"
-            >
+              aria-label="Close order form">
               <X size={28} />
             </button>
 
@@ -266,13 +295,20 @@ export default function ProductDetail({ product }: { product: Product }) {
                 Order with Devotion
               </h2>
               <OrderForm
-                items={[{
-                  id: product.id,
-                  name: product.name,
-                  price: product.price,
-                  quantity: 1,
-                  category: product.Category?.Category || product.category
-                }]}
+                items={[
+                  {
+                    id: product.id,
+                    name: product.name,
+                    price: product.price,
+                    quantity: 1,
+                    category:
+                      product.Category?.Category ||
+                      (typeof product.category === "object" &&
+                      product.category !== null
+                        ? (product.category as any).category
+                        : product.category),
+                  },
+                ]}
                 onOrderSuccess={() => setShowOrderModal(false)}
               />
             </div>
@@ -282,7 +318,10 @@ export default function ProductDetail({ product }: { product: Product }) {
 
       {/* Size Chart Modal */}
       {showSizeChart && product.sizes && (
-        <SizeChartModal sizes={product.sizes} onClose={() => setShowSizeChart(false)} />
+        <SizeChartModal
+          sizes={product.sizes}
+          onClose={() => setShowSizeChart(false)}
+        />
       )}
     </div>
   );

@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Hero from "@/src/components/Hero"
-import ProductGrid from "@/src/components/ProductGrid"
-import Hero2 from "../components/Hero2"
-import AboutSection from "../components/AboutSection"
-import HowToOrder from "../components/HowToOrder"
-import Link from "next/link"
+import Hero from "@/src/components/Hero";
+import ProductGrid from "@/src/components/ProductGrid";
+import Hero2 from "../components/Hero2";
+import AboutSection from "../components/AboutSection";
+import HowToOrder from "../components/HowToOrder";
+import Link from "next/link";
 import LoadingSpinner from "@/src/components/LoadingSpinner";
 import TestimonialSection from "@/src/components/TestimonialSection";
 
@@ -20,7 +20,7 @@ export default function HomePage() {
         const res = await fetch("/api/products/public");
         const data = await res.json();
         if (res.ok && data.products) {
-          setProducts(data.products.slice(0, 4)); // Display featured products
+          setProducts(data.products.slice(0, 6)); // Display featured products
         }
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -39,11 +39,16 @@ export default function HomePage() {
 
       <section className="section py-20 md:py-28 bg-gradient-to-b from-white via-white to-soft/30 relative">
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent"></div>
-        <div className="container mx-auto text-center px-6 md:px-16 mt-20 mb-12">
-          <span className="text-gold text-sm tracking-[0.2em] uppercase font-semibold mb-2 block">Our Curated Collection</span>
-          <h2 className="section-title text-4xl md:text-5xl drop-shadow-sm">Sacred Highlights</h2>
+        <div className="container mx-auto text-center px-6 md:px-16 mt-1 mb-12">
+          <span className="text-gold text-sm tracking-[0.2em] uppercase font-semibold mb-2 block">
+            Our Curated Collection
+          </span>
+          <h2 className="section-title text-4xl md:text-5xl drop-shadow-sm">
+            Sacred Highlights
+          </h2>
           <p className="text-accent mt-3 text-lg font-light leading-relaxed max-w-2xl mx-auto">
-            Handpicked selection of our finest offerings, crafted for your spiritual journey
+            Handpicked selection of our finest offerings, crafted for your
+            spiritual journey
           </p>
         </div>
 
@@ -57,11 +62,10 @@ export default function HomePage() {
           </div>
         )}
 
-        <div className="text-center mt-12 mb-20">
+        <div className="text-center mt-12 mb-3">
           <Link
             href="/products"
-            className="px-12 py-4 border border-dark text-dark rounded-md hover:bg-dark hover:text-white transition-all duration-300 font-bold tracking-widest uppercase text-xs hover:shadow-lg hover:-translate-y-0.5"
-          >
+            className="px-12 py-4 border border-dark text-dark rounded-md hover:bg-dark hover:text-white transition-all duration-300 font-bold tracking-widest uppercase text-xs hover:shadow-lg hover:-translate-y-0.5">
             Explore Full Collection
           </Link>
         </div>
@@ -71,5 +75,5 @@ export default function HomePage() {
 
       <HowToOrder />
     </>
-  )
+  );
 }

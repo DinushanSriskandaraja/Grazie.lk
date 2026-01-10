@@ -22,8 +22,12 @@ export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
-  const [materials, setMaterials] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>(
+    []
+  );
+  const [materials, setMaterials] = useState<{ id: string; name: string }[]>(
+    []
+  );
 
   // Filter states
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -40,7 +44,7 @@ export default function ProductsPage() {
     try {
       const [catsRes, matsRes] = await Promise.all([
         fetch("/api/categories"),
-        fetch("/api/materials")
+        fetch("/api/materials"),
       ]);
 
       if (catsRes.ok) {
@@ -73,17 +77,28 @@ export default function ProductsPage() {
   };
 
   const filteredProducts = products.filter((product) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.description.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const matchesCategory = selectedCategory === "" || product.category === selectedCategory;
-    const matchesMaterial = selectedMaterial === "" || product.material === selectedMaterial;
+    const matchesCategory =
+      selectedCategory === "" || product.category === selectedCategory;
+    const matchesMaterial =
+      selectedMaterial === "" || product.material === selectedMaterial;
 
     const productPrice = product.price;
-    const matchesMinPrice = minPrice === "" || productPrice >= parseFloat(minPrice);
-    const matchesMaxPrice = maxPrice === "" || productPrice <= parseFloat(maxPrice);
+    const matchesMinPrice =
+      minPrice === "" || productPrice >= parseFloat(minPrice);
+    const matchesMaxPrice =
+      maxPrice === "" || productPrice <= parseFloat(maxPrice);
 
-    return matchesSearch && matchesCategory && matchesMaterial && matchesMinPrice && matchesMaxPrice;
+    return (
+      matchesSearch &&
+      matchesCategory &&
+      matchesMaterial &&
+      matchesMinPrice &&
+      matchesMaxPrice
+    );
   });
 
   const clearFilters = () => {
@@ -104,10 +119,14 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-base pb-20">
-      <div className="bg-dark py-12 px-4 shadow-2xl border-b border-gold/30">
-        <div className="max-w-7xl mx-auto text-center">
-          <h1 className="text-4xl font-bold text-soft mb-2 font-heading tracking-wide">Sacred Collection</h1>
-          <p className="text-accent italic font-body">Discover curated premium artifacts for your spiritual journey</p>
+      <div className=" py-6 px-4  ">
+        <div className=" text-center">
+          <h1 className="text-4xl font-bold text-soft mb-2 font-heading tracking-wide">
+            Sacred Collection
+          </h1>
+          <p className="text-accent italic font-body">
+            Discover curated premium artifacts for your spiritual journey
+          </p>
         </div>
       </div>
 
@@ -115,7 +134,6 @@ export default function ProductsPage() {
         <FilterBar
           categories={categories}
           materials={materials}
-          products={products}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
           selectedMaterial={selectedMaterial}
@@ -140,12 +158,12 @@ export default function ProductsPage() {
                   No products match your criteria
                 </h3>
                 <p className="text-gray-500 mb-6">
-                  Try adjusting your filters or search terms to find what you're looking for.
+                  Try adjusting your filters or search terms to find what you're
+                  looking for.
                 </p>
                 <button
                   onClick={clearFilters}
-                  className="px-6 py-2 bg-gold text-white rounded-lg font-medium hover:bg-opacity-90 transition"
-                >
+                  className="px-6 py-2 bg-gold text-white rounded-lg font-medium hover:bg-opacity-90 transition">
                   Clear all filters
                 </button>
               </div>
@@ -159,7 +177,10 @@ export default function ProductsPage() {
 
                 {/* Results Count */}
                 <div className="mt-12 pt-8 border-t border-gray-100 flex items-center justify-between text-sm text-gray-500">
-                  <p>Showing {filteredProducts.length} of {products.length} products</p>
+                  <p>
+                    Showing {filteredProducts.length} of {products.length}{" "}
+                    products
+                  </p>
                   <p>Prices in LKR</p>
                 </div>
               </>

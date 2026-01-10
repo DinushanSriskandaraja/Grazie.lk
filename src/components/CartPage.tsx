@@ -212,7 +212,7 @@ export default function CartPage() {
                 <div className="flex justify-between text-dark/80">
                   <span>Delivery</span>
                   <span className="text-accent/80">
-                    Island-wide (Cash on Delivery)
+                    Island-wide  Delivery
                   </span>
                 </div>
                 <div className="border-t-2 border-gold/20 pt-4">
