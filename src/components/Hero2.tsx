@@ -95,7 +95,6 @@ export default function ProductGridShowcase() {
             >
               <img
                 src={img}
-                alt="Premium pooja item"
                 className="
                   w-full h-full object-cover
                   transition-transform duration-1200 ease-out

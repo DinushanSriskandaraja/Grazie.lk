@@ -18,7 +18,7 @@ export default function AboutSection() {
 
             <p className="text-accent leading-relaxed mb-5">
               <strong>Grazie.lk</strong> is a carefully curated destination for
-              premium pooja and spiritual products. We believe devotion deserves
+              premium return gifts, event gifting, and related products. We believe devotion deserves
               purity, beauty, and authenticity — reflected in every item we offer.
             </p>
 
@@ -51,7 +51,6 @@ export default function AboutSection() {
             <div className="absolute -top-4 -right-4 w-32 h-32 bg-gold/5 rounded-full blur-2xl"></div>
             <img
               src="/about/about-image.png"
-              alt="Pooja items"
               className="relative z-10 rounded-md shadow-xl object-cover w-full h-[420px]"
             />
           </div>

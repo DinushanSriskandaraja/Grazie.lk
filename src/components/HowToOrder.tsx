@@ -5,7 +5,7 @@ export default function HowToOrder() {
     {
       title: "Browse Collection",
       description:
-        "Explore our carefully curated premium pooja items and find the perfect piece for your rituals.",
+        "Explore our carefully curated premium return gifts, event gifting, and related products and find the perfect piece for your rituals.",
       icon: (
         <svg
           className="w-10 h-10"

@@ -12,7 +12,7 @@ export default function Footer() {
               Grazie.lk
             </h2>
             <p className="text-accent/80 text-sm leading-relaxed max-w-xs">
-              Premium pooja items curated with love and devotion for your sacred
+              Premium return gifts, event gifting, and related products curated with love and devotion for your sacred
               rituals and spiritual journeys.
             </p>
             <div className="w-16 h-px bg-gold/50"></div>

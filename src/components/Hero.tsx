@@ -29,7 +29,7 @@ export default function Hero() {
 
         {/* Subheading */}
         <p className="text-lg md:text-2xl text-accent/90 max-w-2xl font-light leading-relaxed">
-          Discover premium pooja items curated with love for your sacred
+          Discover premium return gifts, event gifting, and related products curated with love for your sacred
           rituals. Elevate your spiritual space with elegance, tradition, and
           style.
         </p>

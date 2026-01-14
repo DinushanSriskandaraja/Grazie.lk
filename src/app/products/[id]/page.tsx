@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: product.name,
-    description: product.description?.substring(0, 160) || `Buy ${product.name} from Grazie.lk. Premium pooja items delivered island-wide.`,
+    description: product.description?.substring(0, 160) || `Buy ${product.name} from Grazie.lk. Premium products delivered island-wide.`,
     openGraph: {
       title: product.name,
       description: product.description?.substring(0, 160),
