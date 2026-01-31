@@ -1,5 +1,6 @@
 "use client";
 
+import { redirect } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Package, Search, SlidersHorizontal, X } from "lucide-react";
 import LoadingSpinner from "@/src/components/LoadingSpinner";
@@ -19,6 +20,8 @@ interface Product {
 }
 
 export default function ProductsPage() {
+  redirect("/maintenance");
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
