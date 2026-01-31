@@ -31,7 +31,19 @@ export default function ProductCard({
   onDelete,
 }: Props) {
   const [showOrderModal, setShowOrderModal] = useState(false);
-  const whatsappLink = getWhatsAppLink(`I want to order ${product.name}`);
+
+  // Default Variant Selection Logic
+  const defaultVariant = (!product.price || product.price === 0) && product.variants && product.variants.length > 0
+    ? product.variants.reduce((min, current) => (current.price < min.price ? current : min), product.variants[0])
+    : null;
+
+  const displayPrice = product.price
+    ? product.price
+    : defaultVariant
+      ? defaultVariant.price
+      : 0;
+
+  const whatsappLink = getWhatsAppLink(`I want to order ${product.name}${defaultVariant ? ` (${defaultVariant.name})` : ""}`);
 
   // Determine the best image URL to show
   let mainImageUrl = "/placeholder.png";
@@ -161,8 +173,9 @@ export default function ProductCard({
                     {
                       id: product.id,
                       name: product.name,
-                      price: product.price || 0,
+                      price: displayPrice,
                       quantity: 1,
+                      variant: defaultVariant?.name,
                       category:
                         product.Category?.Category ||
                         (typeof product.category === "object" &&
