@@ -9,6 +9,7 @@ interface OrderItem {
   price: number;
   quantity: number;
   category?: string;
+  variant?: string;
 }
 
 interface OrderFormProps {
@@ -34,9 +35,9 @@ export default function OrderForm({ items, onOrderSuccess }: OrderFormProps) {
   const generateWhatsAppMessage = () => {
     let itemsList = "";
     if (isSingleItem) {
-      itemsList = `Item: ${items[0].name}\nCategory: ${items[0].category || "General"}\nUnit Price: Rs. ${items[0].price.toLocaleString()}\nQuantity: ${internalQuantity}`;
+      itemsList = `Item: ${items[0].name}${items[0].variant ? ` (${items[0].variant})` : ""}\nCategory: ${items[0].category || "General"}\nUnit Price: Rs. ${items[0].price.toLocaleString()}\nQuantity: ${internalQuantity}`;
     } else {
-      itemsList = items.map(item => `- ${item.name} (x${item.quantity}) - Rs. ${(item.price * item.quantity).toLocaleString()}`).join("\n");
+      itemsList = items.map(item => `- ${item.name}${item.variant ? ` (${item.variant})` : ""} (x${item.quantity}) - Rs. ${(item.price * item.quantity).toLocaleString()}`).join("\n");
     }
 
     return `

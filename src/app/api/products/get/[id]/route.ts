@@ -21,6 +21,7 @@ export async function GET(
       material,
       materials (id, name),
       delivey_days,
+      variants,
       images (
         id,
         image_url

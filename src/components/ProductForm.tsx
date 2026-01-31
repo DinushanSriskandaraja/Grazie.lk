@@ -7,11 +7,12 @@ interface ProductFormProps {
     initialData?: {
         name: string;
         description: string;
-        price: number;
+        price?: number;
         stock: number;
         category: string;
         material: string;
         delivey_days?: number;
+        variants?: { name: string; price: number }[];
     };
     onSubmit?: (formData: FormData) => Promise<void>;
     submitLabel?: string;
@@ -39,6 +40,9 @@ export default function ProductForm({
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
     const [materials, setMaterials] = useState<{ id: string; name: string }[]>([]);
     const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+    const [variants, setVariants] = useState<{ name: string; price: string }[]>(
+        initialData?.variants?.map(v => ({ name: v.name, price: v.price.toString() })) || []
+    );
 
     useEffect(() => {
         const fetchData = async () => {
@@ -82,6 +86,13 @@ export default function ProductForm({
         try {
             const form = e.target as HTMLFormElement;
             const data = new FormData(form);
+
+            if (variants.length > 0) {
+                data.append("variants", JSON.stringify(variants.map(v => ({
+                    name: v.name,
+                    price: Number(v.price)
+                }))));
+            }
 
             if (onSubmit) {
                 await onSubmit(data);
@@ -155,12 +166,11 @@ export default function ProductForm({
                 {/* Price */}
                 <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Price (LKR) *
+                        Price (LKR)
                     </label>
                     <input
                         type="number"
                         name="price"
-                        required
                         min="0"
                         step="0.01"
                         value={formData.price}
@@ -169,6 +179,9 @@ export default function ProductForm({
                         placeholder="0.00"
                         disabled={loading}
                     />
+                    <p className="text-xs text-gray-500 mt-1">
+                        Optional if variants are added.
+                    </p>
                 </div>
 
                 {/* Stock */}
@@ -246,6 +259,68 @@ export default function ProductForm({
                             </option>
                         ))}
                     </select>
+                </div>
+
+
+                {/* Variants Section */}
+                <div className="md:col-span-2 border-t pt-6 mt-2">
+                    <label className="block text-lg font-semibold text-gray-800 mb-4">
+                        Product Variants
+                    </label>
+                    <div className="space-y-4 mb-4">
+                        {variants.map((variant, index) => (
+                            <div key={index} className="flex gap-4 items-end bg-gray-50 p-4 rounded-md">
+                                <div className="flex-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Variant Name</label>
+                                    <input
+                                        type="text"
+                                        value={variant.name}
+                                        onChange={(e) => {
+                                            const newVariants = [...variants];
+                                            newVariants[index].name = e.target.value;
+                                            setVariants(newVariants);
+                                        }}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-1 focus:ring-gold focus:border-gold"
+                                        placeholder="e.g. Small, Large, Red"
+                                    />
+                                </div>
+                                <div className="w-32">
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                                    <input
+                                        type="number"
+                                        value={variant.price}
+                                        onChange={(e) => {
+                                            const newVariants = [...variants];
+                                            newVariants[index].price = e.target.value;
+                                            setVariants(newVariants);
+                                        }}
+                                        className="w-full px-3 py-2 border border-gray-300 rounded-sm focus:ring-1 focus:ring-gold focus:border-gold"
+                                        placeholder="0.00"
+                                    />
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        const newVariants = variants.filter((_, i) => i !== index);
+                                        setVariants(newVariants);
+                                    }}
+                                    className="px-3 py-2 bg-red-50 text-red-600 rounded-sm hover:bg-red-100 transition"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setVariants([...variants, { name: "", price: "" }])}
+                        className="text-sm font-semibold text-gold hover:text-dark transition flex items-center gap-1"
+                    >
+                        + Add Variant
+                    </button>
+                    <p className="text-xs text-gray-500 mt-2">
+                        If variants are added, the customer must select one. The variant price will override the base price.
+                    </p>
                 </div>
 
                 {/* Image Upload */}

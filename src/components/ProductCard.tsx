@@ -14,7 +14,9 @@ interface Product {
   images?: Array<{ image_url: string[] }>;
   description: string;
   material?: string;
+
   materials?: { name: string };
+  variants?: { name: string; price: number }[] | null;
 }
 
 interface Props {
@@ -91,7 +93,11 @@ export default function ProductCard({
 
         {/* Price */}
         <p className="text-base sm:text-lg md:text-xl text-accent mb-3 font-medium mt-auto">
-          Rs. {product.price.toLocaleString()}
+          {product.price
+            ? `Rs. ${product.price.toLocaleString()}`
+            : product.variants && product.variants.length > 0
+              ? `From Rs. ${Math.min(...product.variants.map((v) => v.price)).toLocaleString()}`
+              : "Price on Request"}
         </p>
 
         {/* Buttons */}
@@ -129,47 +135,49 @@ export default function ProductCard({
       <div className="absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-10 bg-dark transition-opacity duration-500"></div>
 
       {/* Order Form Modal */}
-      {showOrderModal && (
-        <div
-          className="fixed inset-0 bg-dark/70 backdrop-blur-md z-[100] flex items-center justify-center p-4"
-          onClick={() => setShowOrderModal(false)}>
+      {
+        showOrderModal && (
           <div
-            className="bg-soft shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}>
-            {/* Close Button */}
-            <button
-              onClick={() => setShowOrderModal(false)}
-              className="absolute top-6 right-6 text-dark/60 hover:text-dark transition z-10"
-              aria-label="Close order form">
-              <X size={28} />
-            </button>
+            className="fixed inset-0 bg-dark/70 backdrop-blur-md z-[100] flex items-center justify-center p-4"
+            onClick={() => setShowOrderModal(false)}>
+            <div
+              className="bg-soft shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative"
+              onClick={(e) => e.stopPropagation()}>
+              {/* Close Button */}
+              <button
+                onClick={() => setShowOrderModal(false)}
+                className="absolute top-6 right-6 text-dark/60 hover:text-dark transition z-10"
+                aria-label="Close order form">
+                <X size={28} />
+              </button>
 
-            {/* Form Content */}
-            <div className="p-8 md:p-12">
-              <h2 className="text-3xl md:text-4xl font-heading font-semibold text-dark mb-8 text-center">
-                Order with Devotion
-              </h2>
-              <OrderForm
-                items={[
-                  {
-                    id: product.id,
-                    name: product.name,
-                    price: product.price,
-                    quantity: 1,
-                    category:
-                      product.Category?.Category ||
-                      (typeof product.category === "object" &&
-                      product.category !== null
-                        ? (product.category as any).category
-                        : product.category),
-                  },
-                ]}
-                onOrderSuccess={() => setShowOrderModal(false)}
-              />
+              {/* Form Content */}
+              <div className="p-8 md:p-12">
+                <h2 className="text-3xl md:text-4xl font-heading font-semibold text-dark mb-8 text-center">
+                  Order with Devotion
+                </h2>
+                <OrderForm
+                  items={[
+                    {
+                      id: product.id,
+                      name: product.name,
+                      price: product.price || 0,
+                      quantity: 1,
+                      category:
+                        product.Category?.Category ||
+                        (typeof product.category === "object" &&
+                          product.category !== null
+                          ? (product.category as any).category
+                          : product.category),
+                    },
+                  ]}
+                  onOrderSuccess={() => setShowOrderModal(false)}
+                />
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }

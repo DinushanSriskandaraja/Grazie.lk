@@ -27,6 +27,7 @@ interface Product {
     width: string;
     depth?: string;
   }[];
+  variants?: { name: string; price: number }[];
 }
 
 export default function ProductDetail({ product }: { product: Product }) {
@@ -37,7 +38,19 @@ export default function ProductDetail({ product }: { product: Product }) {
   const [selectedImage, setSelectedImage] = useState(
     product.images?.[0]?.image_url?.[0] || "/placeholder.png"
   );
+  const [selectedVariant, setSelectedVariant] = useState<{ name: string; price: number } | null>(() => {
+    if ((!product.price || product.price === 0) && product.variants && product.variants.length > 0) {
+      return product.variants.reduce((min, current) => (current.price < min.price ? current : min), product.variants[0]);
+    }
+    return null;
+  });
   const router = useRouter();
+
+  const currentPrice = selectedVariant
+    ? selectedVariant.price
+    : product.price ?? (product.variants && product.variants.length > 0
+      ? Math.min(...product.variants.map(v => v.price))
+      : 0); // Default to 0 or hande "Price on Request" logic in UI
 
   // Auto-scroll through images
   useEffect(() => {
@@ -74,7 +87,7 @@ export default function ProductDetail({ product }: { product: Product }) {
         {
           id: product.id,
           name: product.name,
-          price: product.price,
+          price: currentPrice > 0 ? currentPrice : 0,
           category:
             product.Category?.Category ||
             (typeof product.category === "object" && product.category !== null
@@ -82,6 +95,7 @@ export default function ProductDetail({ product }: { product: Product }) {
               : product.category),
           image: product.images?.[0]?.image_url?.[0] || "",
           quantity: 1,
+          variant: selectedVariant?.name,
         },
       ];
     }
@@ -133,11 +147,10 @@ export default function ProductDetail({ product }: { product: Product }) {
                     <button
                       key={idx}
                       onClick={() => setSelectedImage(url)}
-                      className={`relative aspect-square overflow-hidden border-2 transition-all duration-300 ${
-                        selectedImage === url
-                          ? "border-gold shadow-md"
-                          : "border-transparent opacity-60 hover:opacity-100"
-                      }`}>
+                      className={`relative aspect-square overflow-hidden border-2 transition-all duration-300 ${selectedImage === url
+                        ? "border-gold shadow-md"
+                        : "border-transparent opacity-60 hover:opacity-100"
+                        }`}>
                       <Image
                         src={url}
                         alt={`${product.name} template ${idx + 1}`}
@@ -160,14 +173,14 @@ export default function ProductDetail({ product }: { product: Product }) {
               <div className="flex flex-wrap gap-3 mb-6">
                 {(product.Category?.Category ||
                   (product.category && product.category !== "General")) && (
-                  <span className="px-6 py-3 bg-gold/20 text-gold  text-sm font-medium border border-gold/40">
-                    {product.Category?.Category ||
-                      (typeof product.category === "object" &&
-                      product.category !== null
-                        ? (product.category as any).category
-                        : product.category)}
-                  </span>
-                )}
+                    <span className="px-6 py-3 bg-gold/20 text-gold  text-sm font-medium border border-gold/40">
+                      {product.Category?.Category ||
+                        (typeof product.category === "object" &&
+                          product.category !== null
+                          ? (product.category as any).category
+                          : product.category)}
+                    </span>
+                  )}
                 {product.materials?.name && (
                   <span className="px-6 py-3 bg-accent/10 text-accent  text-sm font-medium">
                     {product.materials.name}
@@ -176,17 +189,37 @@ export default function ProductDetail({ product }: { product: Product }) {
               </div>
 
               <p className="text-4xl md:text-5xl font-medium text-dark mb-6">
-                Rs. {product.price.toLocaleString()}
+                {currentPrice > 0 ? `Rs. ${currentPrice.toLocaleString()}` : "Price on Request"}
               </p>
+
+              {/* Variants Selection */}
+              {product.variants && product.variants.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-medium text-dark mb-3">Select Request:</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {product.variants.map((variant, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedVariant(variant)}
+                        className={`px-4 py-2 rounded-md border text-sm font-medium transition-all ${selectedVariant?.name === variant.name
+                          ? "bg-gold text-soft border-gold shadow-md"
+                          : "bg-soft text-dark border-gold/30 hover:border-gold hover:bg-gold/10"
+                          }`}
+                      >
+                        {variant.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Availability & Shipping */}
               <div className="space-y-3 mb-6">
                 <div className="flex items-center gap-3">
                   <Package className="w-5 h-5 text-gold" />
                   <span
-                    className={`font-medium ${
-                      inStock ? "text-dark" : "text-red-600"
-                    }`}>
+                    className={`font-medium ${inStock ? "text-dark" : "text-red-600"
+                      }`}>
                     {inStock ? (
                       lowStock ? (
                         <span className="text-red-600 font-bold">
@@ -229,11 +262,10 @@ export default function ProductDetail({ product }: { product: Product }) {
                 <button
                   onClick={handleAddToCart}
                   disabled={!inStock}
-                  className={`flex-1 flex items-center justify-center gap-3 py-5 px-8 rounded-xl font-semibold text-lg transition-all duration-300 shadow-xl ${
-                    inStock
-                      ? "bg-dark text-soft hover:bg-gold hover:text-soft"
-                      : "bg-accent/20 text-accent/50 cursor-not-allowed"
-                  }`}>
+                  className={`flex-1 flex items-center justify-center gap-3 py-5 px-8 rounded-xl font-semibold text-lg transition-all duration-300 shadow-xl ${inStock
+                    ? "bg-dark text-soft hover:bg-gold hover:text-soft"
+                    : "bg-accent/20 text-accent/50 cursor-not-allowed"
+                    }`}>
                   <ShoppingCart size={20} />
                   Add to Cart
                 </button>
@@ -299,12 +331,13 @@ export default function ProductDetail({ product }: { product: Product }) {
                   {
                     id: product.id,
                     name: product.name,
-                    price: product.price,
+                    price: currentPrice > 0 ? currentPrice : 0,
                     quantity: 1,
+                    variant: selectedVariant?.name,
                     category:
                       product.Category?.Category ||
                       (typeof product.category === "object" &&
-                      product.category !== null
+                        product.category !== null
                         ? (product.category as any).category
                         : product.category),
                   },

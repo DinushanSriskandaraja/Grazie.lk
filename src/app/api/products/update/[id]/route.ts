@@ -23,17 +23,19 @@ export async function PUT(
     const category = formData.get("category")?.toString() || null;
     const material = formData.get("material")?.toString() || null;
     const deliveyDaysRaw = formData.get("delivey_days")?.toString();
+    const variantsRaw = formData.get("variants")?.toString();
+    const variants = variantsRaw ? JSON.parse(variantsRaw) : null;
 
-    const price = Number(priceRaw);
+    const price = priceRaw ? Number(priceRaw) : null;
     const stock = Number(stockRaw);
     const delivey_days = deliveyDaysRaw ? Number(deliveyDaysRaw) : null;
 
     /* ---------- VALIDATION ---------- */
-    if (!name || !description || !priceRaw || !stockRaw) {
+    if (!name || !description || !stockRaw) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    if (isNaN(price) || price <= 0) {
+    if (price !== null && (isNaN(price) || price < 0)) {
       return NextResponse.json({ error: "Invalid price" }, { status: 400 });
     }
 
@@ -52,6 +54,7 @@ export async function PUT(
         material,
         stock,
         delivey_days,
+        variants,
       })
       .eq("id", productId);
 

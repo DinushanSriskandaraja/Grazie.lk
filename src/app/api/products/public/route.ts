@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
         material,
         materials (id, name),
         delivey_days,
+        variants,
         images (
           id,
           image_url

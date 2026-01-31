@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
       materials (id, name),
       stock,
       delivey_days,
+      variants,
       images (
         id,
         image_url

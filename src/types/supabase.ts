@@ -6,11 +6,12 @@ export interface Product {
     id: string;
     name: string;
     description: string;
-    price: number;
+    price: number | null;
     stock: number;
     category: string | null;
     material: string | null;
     delivey_days: number | null;
+    variants?: { name: string; price: number }[] | null;
 }
 
 export interface Category {
@@ -50,7 +51,7 @@ export interface ApiResponse<T = any> {
 export interface ProductCreateInput {
     name: string;
     description: string;
-    price: number;
+    price?: number;
     stock: number;
     category?: string;
     material?: string;

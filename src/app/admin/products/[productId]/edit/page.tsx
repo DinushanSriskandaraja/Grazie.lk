@@ -66,6 +66,7 @@ export default function EditProductPage({
           category: product.category,
           material: product.material,
           delivey_days: product.delivey_days,
+          variants: product.variants,
         }}
         onSubmit={handleUpdate}
         submitLabel="Update Product"
