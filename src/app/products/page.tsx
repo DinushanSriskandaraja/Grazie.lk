@@ -146,6 +146,7 @@ export default function ProductsPage() {
           setSearchQuery={setSearchQuery}
           clearFilters={clearFilters}
           resultsCount={filteredProducts.length}
+          products={products}
         />
 
         <div className="flex flex-col lg:flex-row gap-8">

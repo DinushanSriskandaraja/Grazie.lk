@@ -8,6 +8,8 @@ import {
   ChevronRight,
   RotateCcw,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 interface FilterBarProps {
   categories: { id: string; name: string }[];
@@ -24,6 +26,7 @@ interface FilterBarProps {
   setSearchQuery: (query: string) => void;
   clearFilters: () => void;
   resultsCount: number;
+  products: any[];
 }
 
 export default function FilterBar({
@@ -41,8 +44,17 @@ export default function FilterBar({
   setSearchQuery,
   clearFilters,
   resultsCount,
+  products,
 }: FilterBarProps) {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  // Filter suggestions based on searchQuery
+  const suggestions = searchQuery.length > 1 && products
+    ? products
+      .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+      .slice(0, 5)
+    : [];
 
   const activeFiltersCount =
     (selectedCategory ? 1 : 0) +
@@ -179,7 +191,7 @@ export default function FilterBar({
     <div className="w-full mb-10">
       {/* Horizontal Bar (Desktop) */}
       {/* Horizontal Bar (Desktop) */}
-      <div className="flex flex-row items-center justify-between gap-3 md:gap-6 p-3 md:py-4 md:px-6 bg-soft/50 backdrop-blur-md border border-gold/20 rounded-2xl shadow-sm">
+      <div className="flex flex-row items-center justify-between gap-3 md:gap-6 p-3 md:py-4 md:px-6 bg-soft/50 backdrop-blur-md border border-gold/20 rounded-2xl shadow-sm relative z-30">
         <button
           onClick={() => setIsDrawerOpen(true)}
           className="flex shrink-0 items-center gap-2 md:gap-3 px-3 md:px-6 py-3 bg-dark text-soft rounded-xl shadow-lg hover:bg-gold transition-all duration-300 group">
@@ -201,9 +213,53 @@ export default function FilterBar({
             type="text"
             placeholder="Search products..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             className="w-full pl-12 pr-4 py-3 bg-soft border border-gold/20 rounded-xl focus:border-gold focus:outline-none transition-all placeholder:text-accent/50 text-dark"
           />
+
+          {/* Search Suggestions Dropdown */}
+          {showSuggestions && searchQuery.length > 1 && suggestions.length > 0 && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-soft rounded-xl shadow-2xl border border-gold/20 overflow-hidden z-50">
+              {suggestions.map((product) => (
+                <Link
+                  key={product.id}
+                  href={`/products/${product.id}`}
+                  className="flex items-center gap-3 p-3 hover:bg-gold/10 transition-colors border-b border-gold/5 last:border-none"
+                  onClick={() => setShowSuggestions(false)}
+                >
+                  <div className="relative w-10 h-10 rounded-md overflow-hidden bg-white shrink-0">
+                    {product.images?.[0]?.image_url?.[0] ? (
+                      <Image
+                        src={product.images[0].image_url[0]}
+                        alt={product.name}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-dark truncate">
+                      {product.name}
+                    </p>
+                    <p className="text-xs text-accent truncate">
+                      {product.price > 0
+                        ? `Rs. ${product.price.toLocaleString()}`
+                        : (product.variants && product.variants.length > 0)
+                          ? `From Rs. ${Math.min(...product.variants.map((v: any) => v.price)).toLocaleString()}`
+                          : "Price on Request"}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="flex items-center gap-8">
